@@ -1,12 +1,18 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
+import Checkbox from "@/components/ui/checkbox";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { useCallback, useRef, useState } from "react";
 import { CgNotes } from "react-icons/cg";
 import { MdDelete, MdEdit } from "react-icons/md";
 import { twMerge } from "tailwind-merge";
-
-import { Button } from "@/components/ui/button";
-import Checkbox from "@/components/ui/checkbox";
 
 export default function Home() {
   const [open, setOpen] = useState<Set<number>>(new Set());
@@ -46,7 +52,7 @@ export default function Home() {
     {
       id: 1,
       typeId: 2,
-      food: "1/5 Maçãs",
+      food: "1/5 Maçãafskjsd osdjfldsj slkjdsfokjfl js kdflsjf s",
       weight: 150,
       calories: 10,
       note: "Maçanzinhas hehe",
@@ -145,9 +151,9 @@ export default function Home() {
                   <div className="flex w-full flex-row items-center gap-2">
                     <Checkbox className="bg-brand-3 size-6 rounded-full" />
                     <span className="mx-2 text-xl">{mealType?.icon}</span>
-                    <div className="flex flex-col gap-0.5">
+                    <div className="flex flex-col gap-0.5 overflow-hidden">
                       <div className="flex flex-row flex-wrap items-center gap-2">
-                        <p className="text-md text-secondary font-medium">
+                        <p className="text-md text-secondary truncate font-medium">
                           {obj.food}
                         </p>
                         <div className="bg-brand-3/50 text-brand-1/80 rounded-full px-1.5 py-0.5 text-xs">
@@ -185,6 +191,35 @@ export default function Home() {
               );
             })}
           </div>
+          <Dialog defaultOpen>
+            <DialogTrigger>Abrir</DialogTrigger>
+            <DialogContent>
+              <DialogTitle>Nova refeição</DialogTitle>
+              <DialogDescription>Cadastrar uma nova refeição</DialogDescription>
+              <div className="space-y-1">
+                <h1 className="text-secondary text-xs font-bold">TIPO</h1>
+                <div className="flex flex-row flex-wrap gap-2">
+                  {/* <Button
+                    pointer
+                    className="bg-brand-1/50! border-brand-1 text-secondary flex items-center rounded-full border px-3 py-1 text-xs"
+                  >
+                    <span>☀️ Café da manhã</span>
+                  </Button> */}
+                  {MEAL_TYPES.map((obj, i) => (
+                    <Button
+                      key={i}
+                      pointer
+                      className="bg-background border-border flex items-center rounded-full border px-3 py-1.5 text-xs"
+                    >
+                      <span>
+                        {obj.icon} {obj.label}
+                      </span>
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
         </section>
       </main>
     </>

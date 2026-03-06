@@ -8,7 +8,7 @@ function Button({
 }: {
   pointer?: boolean;
   className?: string;
-  children: ReactNode;
+  children?: ReactNode;
 } & React.ComponentProps<"button">) {
   return (
     <button
