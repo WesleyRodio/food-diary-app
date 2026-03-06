@@ -11,12 +11,12 @@ export default function Checkbox({
   return (
     <CheckboxPrimitive.Root
       className={twMerge(
-        "peer data-[state=checked]:bg-brand-1 data-[state=checked]:text-light bg-background shadow-shadow hover:bg-brand-1/50 relative flex size-5 shrink-0 cursor-pointer rounded-md shadow transition-all duration-150 outline-none disabled:cursor-not-allowed disabled:opacity-50",
+        "peer data-[state=checked]:bg-brand-1 text-light bg-background shadow-shadow hover:bg-brand-1/50 relative flex size-5 shrink-0 cursor-pointer rounded-md shadow transition-all duration-150 outline-none disabled:cursor-not-allowed disabled:opacity-50",
         className,
       )}
       {...props}
     >
-      <CheckboxPrimitive.Indicator className="grid size-full place-content-center text-current transition-none">
+      <CheckboxPrimitive.Indicator className="data-[state=unchecked]:animate-out data-[state=unchecked]:fade-out-0 data-[state=unchecked]:zoom-out-95 grid size-full place-content-center text-current transition-none">
         <CheckIcon className="size-[98%]" />
       </CheckboxPrimitive.Indicator>
     </CheckboxPrimitive.Root>

@@ -1,18 +1,25 @@
 "use client";
 
+import RegisterMeal from "@/components/features/modal-register-meal";
 import { Button } from "@/components/ui/button";
 import Checkbox from "@/components/ui/checkbox";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import GradientIcon from "@/components/ui/gradient-icon";
 import { useCallback, useRef, useState } from "react";
 import { CgNotes } from "react-icons/cg";
+import { FaAppleWhole, FaFire } from "react-icons/fa6";
+import { GiMeal } from "react-icons/gi";
 import { MdDelete, MdEdit } from "react-icons/md";
+import { RiPlantFill } from "react-icons/ri";
 import { twMerge } from "tailwind-merge";
+
+export const MEAL_TYPES = [
+  { typeId: 1, label: "Café da manhã", icon: "☀️" },
+  { typeId: 2, label: "Lanche manhã", icon: "🍎" },
+  { typeId: 3, label: "Almoço", icon: "🥗" },
+  { typeId: 4, label: "Lanche tarde", icon: "🫐" },
+  { typeId: 5, label: "Jantar", icon: "🌙" },
+  { typeId: 6, label: "Ceia", icon: "🌿" },
+];
 
 export default function Home() {
   const [open, setOpen] = useState<Set<number>>(new Set());
@@ -39,22 +46,13 @@ export default function Home() {
     });
   }, []);
 
-  const MEAL_TYPES = [
-    { typeId: 1, label: "Café da manhã", icon: "☀️" },
-    { typeId: 2, label: "Lanche manhã", icon: "🍎" },
-    { typeId: 3, label: "Almoço", icon: "🥗" },
-    { typeId: 4, label: "Lanche tarde", icon: "🫐" },
-    { typeId: 5, label: "Jantar", icon: "🌙" },
-    { typeId: 6, label: "Ceia", icon: "🌿" },
-  ];
-
   const meals = [
     {
       id: 1,
       typeId: 2,
       food: "1/5 Maçãafskjsd osdjfldsj slkjdsfokjfl js kdflsjf s",
       weight: 150,
-      calories: 10,
+      calories: 210,
       note: "Maçanzinhas hehe",
       time: "10:00",
       done: false,
@@ -65,20 +63,30 @@ export default function Home() {
     <>
       <header
         className={twMerge(
-          "bg-foreground shadow-shadow mb-2 flex h-48.5 flex-col rounded-b-4xl p-5 shadow transition-all duration-300",
+          "bg-foreground shadow-shadow mb-2 flex flex-col rounded-b-4xl p-5 shadow transition-all duration-300",
           scrolled && "mb-0 h-0 overflow-hidden py-0",
           // ? "mb-0 max-h-0 py-0 opacity-0"
           // : "mb-2 max-h-95 opacity-100",
         )}
       >
-        <span className="text-muted mb-2 font-semibold">QUA, 4 DE MAR</span>
-        <h1 className="text-secondary text-2xl font-bold">Meu diário</h1>
-        <h2 className="text-brand-1 mb-6 text-xl font-bold">Alimentar 🌿</h2>
+        <span className="text-muted mb-2 text-sm font-semibold">
+          QUA, 4 DE MAR
+        </span>
+        <h1 className="text-secondary text-lg font-bold">Meu diário</h1>
+        <div className="mb-6 flex flex-row items-center gap-1">
+          <h2 className="text-brand-1 text-2xl font-bold">Alimentar</h2>
+          <GradientIcon
+            id="logo"
+            color1="var(--color-brand-2)"
+            color2="var(--color-brand-3)"
+            Icon={RiPlantFill}
+          />
+        </div>
         <div className="flex gap-2">
           <Button className="text-brand-1 border-brand-1 bg-brand-1/20 cursor-pointer rounded-4xl border px-6 py-2 text-sm font-medium">
             📋 Hoje
           </Button>
-          <Button className="text-secondary bg-background border-border cursor-pointer rounded-4xl border px-6 py-2 text-sm font-medium">
+          <Button className="text-secondary border-secondary/30 cursor-pointer rounded-4xl border bg-transparent px-6 py-2 text-sm font-medium">
             📅 Histórico
           </Button>
         </div>
@@ -96,7 +104,14 @@ export default function Home() {
         >
           <section className="mb-2 flex flex-row gap-2">
             <div className="border-border shadow-shadow bg-foreground flex flex-1 flex-col rounded-xl border p-4 shadow">
-              <div className="text-2xl">🍽️</div>
+              <div className="text-2xl">
+                <GradientIcon
+                  id="meal"
+                  color1="var(--color-gray-300)"
+                  color2="var(--color-zinc-400)"
+                  Icon={GiMeal}
+                />
+              </div>
               <span className="text-primary text-xl font-semibold">3</span>
               <span className="text-muted text-xs font-semibold">
                 refeições
@@ -106,7 +121,14 @@ export default function Home() {
               </span>
             </div>
             <div className="border-border shadow-shadow bg-foreground flex flex-1 flex-col rounded-xl border p-4 shadow">
-              <div className="text-2xl">🔥</div>
+              <div className="text-2xl">
+                <GradientIcon
+                  id="kcal"
+                  color1="var(--color-orange-300)"
+                  color2="var(--color-red-400)"
+                  Icon={FaFire}
+                />
+              </div>
               <span className="text-primary text-xl font-semibold">400</span>
               <span className="text-muted text-xs font-semibold">kcal</span>
               <span className="text-muted text-[0.55rem] font-semibold">
@@ -114,7 +136,14 @@ export default function Home() {
               </span>
             </div>
             <div className="border-border shadow-shadow bg-foreground flex flex-1 flex-col rounded-xl border p-4 shadow">
-              <div className="text-2xl">🥦</div>
+              <div className="text-2xl">
+                <GradientIcon
+                  id="consumed"
+                  color1="var(--color-brand-1)"
+                  color2="var(--color-brand-2)"
+                  Icon={FaAppleWhole}
+                />
+              </div>
               <span className="text-primary text-xl font-semibold">485g</span>
               <span className="text-muted text-xs font-semibold">
                 consumido
@@ -125,12 +154,10 @@ export default function Home() {
             </div>
           </section>
           <section className="flex flex-row gap-2">
-            <button className="text-foreground shadow-shadow from-brand-1 to-brand-2 text-md flex-1 cursor-pointer rounded-xl bg-linear-to-br py-3 font-medium shadow">
-              + Refeição
-            </button>
-            <button className="border-border text-primary shadow-shadow text-md bg-foreground flex-1 cursor-pointer rounded-xl border py-3 shadow">
+            <RegisterMeal />
+            <Button className="border-border text-primary shadow-shadow text-md bg-foreground flex-1 cursor-pointer rounded-xl border shadow">
               ⚖️ Peso
-            </button>
+            </Button>
           </section>
         </section>
         <section className="flex flex-col gap-4 px-2 pb-2">
@@ -156,9 +183,16 @@ export default function Home() {
                         <p className="text-md text-secondary truncate font-medium">
                           {obj.food}
                         </p>
-                        <div className="bg-brand-3/50 text-brand-1/80 rounded-full px-1.5 py-0.5 text-xs">
-                          {`${obj.weight}g`}
-                        </div>
+                        {!!obj.weight && (
+                          <div className="bg-brand-3/50 text-brand-1/80 rounded-full px-1.5 py-0.5 text-xs">
+                            {`${obj.weight}g`}
+                          </div>
+                        )}
+                        {!!obj.calories && (
+                          <div className="rounded-full bg-amber-300/20 px-1.5 py-0.5 text-xs text-amber-500">
+                            {`${obj.calories} kcal`}
+                          </div>
+                        )}
                       </div>
                       <p className="text-muted text-xs">
                         {mealType?.label} - {obj.time}
@@ -191,35 +225,6 @@ export default function Home() {
               );
             })}
           </div>
-          <Dialog defaultOpen>
-            <DialogTrigger>Abrir</DialogTrigger>
-            <DialogContent>
-              <DialogTitle>Nova refeição</DialogTitle>
-              <DialogDescription>Cadastrar uma nova refeição</DialogDescription>
-              <div className="space-y-1">
-                <h1 className="text-secondary text-xs font-bold">TIPO</h1>
-                <div className="flex flex-row flex-wrap gap-2">
-                  {/* <Button
-                    pointer
-                    className="bg-brand-1/50! border-brand-1 text-secondary flex items-center rounded-full border px-3 py-1 text-xs"
-                  >
-                    <span>☀️ Café da manhã</span>
-                  </Button> */}
-                  {MEAL_TYPES.map((obj, i) => (
-                    <Button
-                      key={i}
-                      pointer
-                      className="bg-background border-border flex items-center rounded-full border px-3 py-1.5 text-xs"
-                    >
-                      <span>
-                        {obj.icon} {obj.label}
-                      </span>
-                    </Button>
-                  ))}
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
         </section>
       </main>
     </>
