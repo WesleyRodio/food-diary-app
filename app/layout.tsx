@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Inter, Geist_Mono } from "next/font/google";
+
 import "./globals.css";
+import { Loader } from "@/components/ui/loader";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -30,7 +32,7 @@ export default function RootLayout({
         className={`${inter.variable} ${geistMono.variable} bg-brand-3/20 flex h-dvh overflow-hidden font-sans antialiased`}
       >
         <main className="mx-auto my-0 flex h-dvh w-dvw max-w-115 flex-col rounded-none transition-all duration-300 sm:my-auto sm:h-[96dvh] sm:overflow-hidden sm:rounded-2xl">
-          {children}
+          <Loader>{children}</Loader>
         </main>
       </body>
     </html>

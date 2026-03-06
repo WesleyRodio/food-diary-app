@@ -8,6 +8,28 @@ function Dialog({ children, ...props }: DialogProps) {
   return <DialogPrimitive.Root {...props}>{children}</DialogPrimitive.Root>;
 }
 
+function DialogPortal({
+  ...props
+}: React.ComponentProps<typeof DialogPrimitive.Portal>) {
+  return <DialogPrimitive.Portal {...props} />;
+}
+
+function DialogOverlay({
+  className,
+  ...props
+}: React.ComponentProps<typeof DialogPrimitive.Overlay>) {
+  return (
+    <DialogPrimitive.Overlay
+      className={twMerge(
+        (className =
+          "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 flex items-center justify-center overflow-auto bg-black/10 px-2 py-8 backdrop-blur-xs transition-all duration-300"),
+        className,
+      )}
+      {...props}
+    />
+  );
+}
+
 function DialogContent({
   className,
   children,
@@ -16,8 +38,8 @@ function DialogContent({
   children: ReactNode;
 }) {
   return (
-    <DialogPrimitive.Portal>
-      <DialogPrimitive.Overlay className="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 flex items-center justify-center overflow-auto bg-black/10 px-2 py-8 backdrop-blur-xs transition-all duration-300">
+    <DialogPortal>
+      <DialogOverlay>
         <DialogPrimitive.Content
           className={twMerge(
             "bg-foreground data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 shadow-shadow pointer-events-auto relative min-h-34 w-dvw max-w-105 rounded-3xl p-5 shadow outline-0 transition-all duration-300",
@@ -30,8 +52,8 @@ function DialogContent({
             <span className="sr-only">Close</span>
           </DialogPrimitive.Close>
         </DialogPrimitive.Content>
-      </DialogPrimitive.Overlay>
-    </DialogPrimitive.Portal>
+      </DialogOverlay>
+    </DialogPortal>
   );
 }
 
@@ -90,9 +112,11 @@ function DialogTrigger({
 
 export {
   Dialog,
-  DialogTrigger,
+  DialogPortal,
+  DialogOverlay,
   DialogContent,
   DialogFooter,
   DialogTitle,
   DialogDescription,
+  DialogTrigger,
 };
