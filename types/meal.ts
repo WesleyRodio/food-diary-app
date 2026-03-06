@@ -29,9 +29,12 @@ const mealSchema = z.object({
 });
 export type MealType = z.infer<typeof mealSchema>;
 
-export const mealRegister = mealSchema.omit({
-  id: true,
-  date: true,
-  done: true,
-});
+export const mealRegister = mealSchema
+  .omit({
+    date: true,
+    done: true,
+  })
+  .partial({
+    id: true,
+  });
 export type MealRegisterType = z.infer<typeof mealRegister>;

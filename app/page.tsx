@@ -1,13 +1,5 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import { CgNotes } from "react-icons/cg";
-import { FaAppleWhole, FaFire, FaWeightHanging } from "react-icons/fa6";
-import { GiMeal } from "react-icons/gi";
-import { MdDelete, MdEdit } from "react-icons/md";
-import { RiPlantFill } from "react-icons/ri";
-import { twMerge } from "tailwind-merge";
-
 import RegisterMeal from "@/components/features/modal-form-meal";
 import RegisterWeight from "@/components/features/modal-register-weight";
 import { Button } from "@/components/ui/button";
@@ -17,6 +9,13 @@ import Input from "@/components/ui/input";
 import { setLocalStorage, useLocalStorage } from "@/helpers/useLocalStorage";
 import { mealsTypes, type MealRegisterType, type MealType } from "@/types/meal";
 import type { WeightType } from "@/types/weights";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { CgNotes } from "react-icons/cg";
+import { FaAppleWhole, FaFire, FaWeightHanging } from "react-icons/fa6";
+import { GiMeal } from "react-icons/gi";
+import { MdDelete, MdEdit } from "react-icons/md";
+import { RiPlantFill } from "react-icons/ri";
+import { twMerge } from "tailwind-merge";
 
 const today = () => new Date().toISOString().slice(0, 10);
 const fmtDate = (d: Date) => {
@@ -97,17 +96,23 @@ export default function Home() {
 
   const submitNewMeal = useCallback(
     (data: MealRegisterType) => {
-      const allMeals = meals;
-      allMeals.push({
-        ...data,
-        id: Date.now(),
-        date: selDate,
-        done: false,
-      });
-      setMeals(allMeals);
-      setLocalStorage("dn_meals", JSON.stringify(allMeals));
+      if (isEdit) {
+        setMeals(prev =>
+          prev.map(m => (m.id === dataEdit?.id ? { ...m, ...data } : m)),
+        );
+      } else {
+        const allMeals = meals;
+        allMeals.push({
+          ...data,
+          id: Date.now(),
+          date: selDate,
+          done: false,
+        });
+        setMeals(allMeals);
+        setLocalStorage("dn_meals", JSON.stringify(allMeals));
+      }
     },
-    [meals, selDate],
+    [meals, selDate, isEdit, dataEdit],
   );
 
   const dayMeals = meals
@@ -150,7 +155,14 @@ export default function Home() {
               />
             </div>
           </div>
-          <Input type="date" className="mb-auto ml-auto" />
+          <Input
+            type="date"
+            value={selDate}
+            onChange={e => {
+              setSelDate(e.currentTarget.value);
+            }}
+            className="mb-auto ml-auto"
+          />
         </div>
         <div className="flex gap-2">
           <Button className="text-brand-1 border-brand-1 bg-brand-1/20 cursor-pointer rounded-4xl border px-6 py-2 text-sm font-medium">
@@ -265,7 +277,13 @@ export default function Home() {
             )}
           </section>
           <section className="flex flex-row gap-2">
-            <Button className="text-foreground text-md bg-brand-1 flex-1 cursor-pointer rounded-xl bg-linear-[135deg,var(--color-brand-1),var(--color-brand-2)] py-3 font-medium shadow-md transition-all outline-none active:scale-98">
+            <Button
+              onClick={() => {
+                setShowAdd(true);
+                setIsEdit(false);
+              }}
+              className="text-foreground text-md bg-brand-1 flex-1 cursor-pointer rounded-xl bg-linear-[135deg,var(--color-brand-1),var(--color-brand-2)] py-3 font-medium shadow-md transition-all outline-none active:scale-98"
+            >
               + Refeição
             </Button>
             <RegisterWeight />
@@ -273,12 +291,12 @@ export default function Home() {
         </section>
         <section className="flex flex-col gap-4 px-2 pb-2">
           <div className="no-scrollbar flex h-full flex-col gap-2">
-            {meals.length ? (
+            {dayMeals.length ? (
               <>
                 <h5 className="text-brand-1/80 text-xs font-semibold">
                   REFEIÇÕES DO DIA
                 </h5>
-                {meals.map((obj, i) => {
+                {dayMeals.map((obj, i) => {
                   const mealType = mealsTypes.find(
                     types => types.typeId === obj.typeId,
                   );
@@ -344,7 +362,14 @@ export default function Home() {
                               <CgNotes className="size-5" />
                             </button>
                           )}
-                          <button className="cursor-pointer p-1">
+                          <button
+                            onClick={() => {
+                              setDataEdit(obj);
+                              setIsEdit(true);
+                              setShowAdd(true);
+                            }}
+                            className="cursor-pointer p-1"
+                          >
                             <MdEdit className="size-5" />
                           </button>
                           <button className="cursor-pointer p-1 text-red-400">

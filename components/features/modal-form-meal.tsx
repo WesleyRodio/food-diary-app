@@ -1,13 +1,7 @@
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useCallback, useState, type ElementType } from "react";
-import { useForm } from "react-hook-form";
-import { MdEdit } from "react-icons/md";
-import { twMerge } from "tailwind-merge";
-import * as z from "zod";
-
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -18,6 +12,12 @@ import useLoader from "@/components/ui/loader";
 import Textarea from "@/components/ui/textarea";
 import useDate from "@/helpers/useDate";
 import { mealsTypes, type MealRegisterType } from "@/types/meal";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useCallback, useEffect, useState, type ElementType } from "react";
+import { useForm } from "react-hook-form";
+import { MdEdit } from "react-icons/md";
+import { twMerge } from "tailwind-merge";
+import * as z from "zod";
 
 const mealSchema = z.object({
   food: z.string().min(1, "Campo obrigatório"),
@@ -48,21 +48,37 @@ export default function RegisterMeal({
 }: RegisterMealProps) {
   const { brFormat } = useDate();
   const { setLoading } = useLoader();
+  const curDate = brFormat().split("-")[1].split(":").slice(0, 2).join(":");
   const {
     register,
     handleSubmit,
+    reset,
+    setValue,
     formState: { errors },
   } = useForm<MealFormInput, unknown, MealFormOutput>({
     resolver: zodResolver(mealSchema),
-    defaultValues: {
-      food: initial?.food || "",
-      calories: String(initial?.calories) || "",
-      note: String(initial?.calories) || "",
-      time: initial?.time || "",
-      weight: String(initial?.weight) || "",
-    },
   });
+
+  console.log(errors);
+
   const [typeId, setTypeId] = useState<number>(initial?.typeId || 1);
+
+  useEffect(() => {
+    if (!open) {
+      reset();
+    }
+
+    if (initial && edit) {
+      for (const [key, value] of Object.entries(initial)) {
+        if (key) {
+          const formatValue = key === "typeId" ? Number(value) : String(value);
+          setValue(key as keyof MealFormInput, formatValue);
+        }
+      }
+    } else {
+      reset();
+    }
+  }, [open, initial, edit, setValue, reset]);
 
   const onSubmitForm = useCallback(
     async (data: MealFormOutput) => {
@@ -89,16 +105,18 @@ export default function RegisterMeal({
     [typeId, onSubmit, setLoading, setOpen],
   );
 
-  const curDate = brFormat().split("-")[1].split(":").slice(0, 2).join(":");
-
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent>
-        <DialogTitle>Nova refeição</DialogTitle>
-        <DialogDescription>Cadastrar uma nova refeição</DialogDescription>
+        <DialogTitle>{edit ? "Editando" : "Nova"} refeição</DialogTitle>
+        <DialogDescription>
+          {edit
+            ? "Editando uma refeição já cadastrada"
+            : "Cadastrar uma nova refeição"}
+        </DialogDescription>
         <form id="meal-form" onSubmit={handleSubmit(onSubmitForm)}>
           {edit && initial && (
-            <div className="bg-brand-2 flex flex-row items-center gap-2 rounded-xl px-4 py-3">
+            <div className="text-brand-1/80 border-brand-1/60 bg-brand-2/40 mb-4 flex flex-row items-center gap-2 rounded-xl border px-4 py-3 text-sm">
               <MdEdit className="text-xl" />
               <span>
                 Editando <strong>{initial?.food}</strong>
@@ -216,14 +234,16 @@ export default function RegisterMeal({
           </div>
         </form>
         <DialogFooter className="mt-6">
-          <Button pointer>Cancelar</Button>
+          <DialogClose asChild>
+            <Button pointer>Cancelar</Button>
+          </DialogClose>
           <Button
             pointer
             type="submit"
             form="meal-form"
             className="text-light flex-1 bg-linear-[135deg,var(--color-brand-1),var(--color-brand-2)]"
           >
-            Adicionar refeição
+            {edit ? "Editar refeição" : "Adicionar refeição"}
           </Button>
         </DialogFooter>
       </DialogContent>

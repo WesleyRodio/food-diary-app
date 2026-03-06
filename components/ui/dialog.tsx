@@ -110,6 +110,12 @@ function DialogTrigger({
   return <DialogPrimitive.Trigger data-slot="dialog-trigger" {...props} />;
 }
 
+function DialogClose({
+  ...props
+}: React.ComponentProps<typeof DialogPrimitive.Close>) {
+  return <DialogPrimitive.Close data-slot="dialog-Close" {...props} />;
+}
+
 export {
   Dialog,
   DialogPortal,
@@ -119,4 +125,5 @@ export {
   DialogTitle,
   DialogDescription,
   DialogTrigger,
+  DialogClose,
 };
