@@ -1,14 +1,5 @@
 "use client";
 
-import RegisterMeal from "@/components/features/modal-form-meal";
-import RegisterWeight from "@/components/features/modal-register-weight";
-import { Button } from "@/components/ui/button";
-import Checkbox from "@/components/ui/checkbox";
-import GradientIcon from "@/components/ui/gradient-icon";
-import Input from "@/components/ui/input";
-import { setLocalStorage, useLocalStorage } from "@/helpers/useLocalStorage";
-import { mealsTypes, type MealRegisterType, type MealType } from "@/types/meal";
-import type { WeightType } from "@/types/weights";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { CgNotes } from "react-icons/cg";
 import { FaAppleWhole, FaFire, FaWeightHanging } from "react-icons/fa6";
@@ -16,6 +7,16 @@ import { GiMeal } from "react-icons/gi";
 import { MdDelete, MdEdit } from "react-icons/md";
 import { RiPlantFill } from "react-icons/ri";
 import { twMerge } from "tailwind-merge";
+
+import RegisterMeal from "@/components/features/modal-form-meal";
+import DialogWeight from "@/components/features/modal-register-weight";
+import { Button } from "@/components/ui/button";
+import Checkbox from "@/components/ui/checkbox";
+import GradientIcon from "@/components/ui/gradient-icon";
+import Input from "@/components/ui/input";
+import { setLocalStorage, useLocalStorage } from "@/helpers/useLocalStorage";
+import { mealsTypes, type MealRegisterType, type MealType } from "@/types/meal";
+import type { WeightRegisterType, WeightType } from "@/types/weights";
 
 const today = () => new Date().toISOString().slice(0, 10);
 const fmtDate = (d: Date) => {
@@ -49,6 +50,8 @@ export default function Home() {
   const [showAdd, setShowAdd] = useState(false);
   const [dataEdit, setDataEdit] = useState<MealRegisterType | null>(null);
 
+  const [dialogWeight, setDialogWeight] = useState(false);
+
   const [meals, setMeals] = useState<MealType[]>(
     JSON.parse(localMeals || "[]"),
   );
@@ -68,6 +71,12 @@ export default function Home() {
       setMeals(JSON.parse(localMeals || "[]"));
     }, 0);
   }, [localMeals]);
+
+  useEffect(() => {
+    setTimeout(() => {
+      setWeights(JSON.parse(localWeights || "[]"));
+    }, 0);
+  }, [localWeights]);
 
   const handleToggleOpenMeal = useCallback((id: number) => {
     setOpen(prev => {
@@ -94,12 +103,35 @@ export default function Home() {
     [meals],
   );
 
-  const submitNewMeal = useCallback(
+  const submitWeight = useCallback(
+    (data: WeightRegisterType) => {
+      let allWeights = weights;
+
+      const weightToday = allWeights.find(w => w.date === selDate);
+
+      if (weightToday) {
+        allWeights = allWeights.map(w =>
+          w.date === selDate ? { ...w, ...data } : w,
+        );
+      } else {
+        allWeights.push({
+          ...data,
+          date: selDate,
+        });
+      }
+
+      setLocalStorage("dn_weights", JSON.stringify(allWeights));
+    },
+    [weights, selDate],
+  );
+
+  const submitMeal = useCallback(
     (data: MealRegisterType) => {
       if (isEdit) {
-        setMeals(prev =>
-          prev.map(m => (m.id === dataEdit?.id ? { ...m, ...data } : m)),
+        const updateMeal = meals.map(m =>
+          m.id === dataEdit?.id ? { ...m, ...data } : m,
         );
+        setLocalStorage("dn_meals", JSON.stringify(updateMeal));
       } else {
         const allMeals = meals;
         allMeals.push({
@@ -108,11 +140,19 @@ export default function Home() {
           date: selDate,
           done: false,
         });
-        setMeals(allMeals);
         setLocalStorage("dn_meals", JSON.stringify(allMeals));
       }
     },
     [meals, selDate, isEdit, dataEdit],
+  );
+
+  const deleteMeal = useCallback(
+    (meal: MealType) => {
+      const del = meals.filter(m => m.id !== meal.id);
+
+      setLocalStorage("dn_meals", JSON.stringify(del));
+    },
+    [meals],
   );
 
   const dayMeals = meals
@@ -129,7 +169,12 @@ export default function Home() {
         edit={isEdit}
         open={showAdd}
         setOpen={setShowAdd}
-        onSubmit={submitNewMeal}
+        onSubmit={submitMeal}
+      />
+      <DialogWeight
+        open={dialogWeight}
+        setOpen={setDialogWeight}
+        onSubmit={submitWeight}
       />
       <header
         className={twMerge(
@@ -255,7 +300,14 @@ export default function Home() {
               </span>
             </div>
             {todayWeight && (
-              <div className="border-border shadow-shadow bg-foreground flex flex-1 flex-col rounded-xl border p-4 shadow">
+              <div
+                className={twMerge(
+                  "border-border shadow-shadow bg-foreground ml-2 flex flex-col overflow-hidden rounded-xl border p-4 shadow transition-all",
+                  !todayWeight
+                    ? "animate-out fade-out-0 zoom-out-95 m-0 w-0 scale-0 border-0 p-0 shadow-none"
+                    : "animate-in fade-in-0 zoom-in-95 flex-1",
+                )}
+              >
                 <div className="text-2xl">
                   <GradientIcon
                     id="weight"
@@ -286,7 +338,14 @@ export default function Home() {
             >
               + Refeição
             </Button>
-            <RegisterWeight />
+            <Button
+              onClick={() => {
+                setDialogWeight(true);
+              }}
+              className="bg-foreground shadow-shadow focus-visible:ring-brand-3 border-border hover:bg-foreground/50 text-muted flex-1 cursor-pointer rounded-xl border px-2 py-3 text-sm font-semibold shadow ring-2 ring-transparent outline-0 transition-all duration-300 active:scale-96"
+            >
+              ⚖️ Peso
+            </Button>
           </section>
         </section>
         <section className="flex flex-col gap-4 px-2 pb-2">
@@ -372,7 +431,10 @@ export default function Home() {
                           >
                             <MdEdit className="size-5" />
                           </button>
-                          <button className="cursor-pointer p-1 text-red-400">
+                          <button
+                            onClick={() => deleteMeal(obj)}
+                            className="cursor-pointer p-1 text-red-400"
+                          >
                             <MdDelete className="size-5" />
                           </button>
                         </div>

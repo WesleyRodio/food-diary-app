@@ -1,3 +1,17 @@
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  useCallback,
+  useEffect,
+  useState,
+  type ElementType,
+  type InputEvent,
+} from "react";
+import { useForm } from "react-hook-form";
+import { MdEdit } from "react-icons/md";
+import { twMerge } from "tailwind-merge";
+import * as z from "zod";
+
+import { calculateCal } from "@/components/features/calcKcal";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -12,12 +26,6 @@ import useLoader from "@/components/ui/loader";
 import Textarea from "@/components/ui/textarea";
 import useDate from "@/helpers/useDate";
 import { mealsTypes, type MealRegisterType } from "@/types/meal";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useCallback, useEffect, useState, type ElementType } from "react";
-import { useForm } from "react-hook-form";
-import { MdEdit } from "react-icons/md";
-import { twMerge } from "tailwind-merge";
-import * as z from "zod";
 
 const mealSchema = z.object({
   food: z.string().min(1, "Campo obrigatório"),
@@ -54,6 +62,7 @@ export default function RegisterMeal({
     handleSubmit,
     reset,
     setValue,
+    getValues,
     formState: { errors },
   } = useForm<MealFormInput, unknown, MealFormOutput>({
     resolver: zodResolver(mealSchema),
@@ -62,6 +71,9 @@ export default function RegisterMeal({
   console.log(errors);
 
   const [typeId, setTypeId] = useState<number>(initial?.typeId || 1);
+  const [suggest, setSuggest] = useState<
+    Array<{ food: string; cal: number }> | false
+  >(false);
 
   useEffect(() => {
     if (!open) {
@@ -80,27 +92,48 @@ export default function RegisterMeal({
     }
   }, [open, initial, edit, setValue, reset]);
 
+  const handleInput = useCallback(
+    (el: InputEvent<HTMLInputElement>) => {
+      if (el.currentTarget) {
+        const input = el.currentTarget.name.trim();
+
+        if (input === "food") {
+          const food = el.currentTarget.value;
+          const weight = Number(getValues("weight"));
+          setSuggest(calculateCal(food, weight));
+          return;
+        }
+
+        const food = getValues("food").trim();
+        const weight = Number(el.currentTarget.value);
+        setSuggest(calculateCal(food, weight));
+      }
+    },
+    [getValues],
+  );
+
   const onSubmitForm = useCallback(
     async (data: MealFormOutput) => {
       setLoading(true);
       await new Promise(resolve => {
-        data.typeId = typeId;
-
-        onSubmit({
-          typeId: data.typeId,
-          food: data.food.trim(),
-          weight: data.weight,
-          calories: data.calories,
-          note: data.note.trim(),
-          time: data.time,
-        });
-
         setTimeout(() => {
           resolve(true);
         }, 500);
       });
+
+      data.typeId = typeId;
+      onSubmit({
+        typeId: data.typeId,
+        food: data.food.trim(),
+        weight: data.weight,
+        calories: data.calories,
+        note: data.note.trim(),
+        time: data.time,
+      });
+
       setLoading(false);
       setOpen(false);
+      setSuggest(false);
     },
     [typeId, onSubmit, setLoading, setOpen],
   );
@@ -151,25 +184,57 @@ export default function RegisterMeal({
                 ))}
               </div>
             </div>
-            <div className="space-y-1">
-              <div>
-                <h1 className="text-muted/80 text-xs font-bold">
-                  O QUE VOCÊ COMEU?
-                </h1>
-                {errors.food && (
-                  <span className="text-xs text-red-400">
-                    Este campo é obrigatório
-                  </span>
-                )}
+            <div className="space-y-2">
+              <div className="space-y-1">
+                <div>
+                  <h1 className="text-muted/80 text-xs font-bold">
+                    O QUE VOCÊ COMEU?
+                  </h1>
+                  {errors.food && (
+                    <span className="text-xs text-red-400">
+                      Este campo é obrigatório
+                    </span>
+                  )}
+                </div>
+                <div className="flex flex-row flex-wrap gap-2">
+                  <Input
+                    type="text"
+                    placeholder="Ex: Feijão, arroz e salada"
+                    onInput={handleInput}
+                    autoComplete="off"
+                    {...register("food", { required: true })}
+                    className="w-full"
+                  />
+                </div>
               </div>
-              <div className="flex flex-row flex-wrap gap-2">
-                <Input
-                  type="text"
-                  placeholder="Ex: Feijão, arroz e salada"
-                  {...register("food", { required: true })}
-                  className="w-full"
-                />
-              </div>
+              {suggest && (
+                <div className="max-h-40 space-y-1 overflow-auto">
+                  <div>
+                    <h1 className="text-muted/80 text-xs font-bold">
+                      Sugestão:
+                    </h1>
+                  </div>
+                  <div className="flex flex-col flex-wrap gap-2">
+                    {suggest.map(food => (
+                      <Button
+                        key={food.food}
+                        pointer
+                        type="button"
+                        onClick={() => {
+                          setValue("food", String(food.food));
+                          setValue("calories", String(food.cal));
+                          setSuggest(false);
+                        }}
+                        className="bg-brand-1 text-light hover:text-brand-1 flex-1 py-2"
+                      >
+                        <span>
+                          {food.food}: {food.cal} calorias
+                        </span>
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
             <div className="flex flex-row flex-wrap items-end gap-2">
               <div className="flex-1 space-y-1">
@@ -182,6 +247,8 @@ export default function RegisterMeal({
                     inputMode="numeric"
                     min={0}
                     placeholder="350"
+                    autoComplete="off"
+                    onInput={handleInput}
                     {...register("weight")}
                     className="w-full"
                   />
@@ -195,6 +262,7 @@ export default function RegisterMeal({
                     inputMode="numeric"
                     min={0}
                     placeholder="480"
+                    autoComplete="off"
                     {...register("calories")}
                     className="w-full"
                   />
@@ -225,6 +293,7 @@ export default function RegisterMeal({
               </h1>
               <div className="flex flex-row flex-wrap gap-2">
                 <Textarea
+                  autoComplete="off"
                   placeholder="Como você se sentiu? Substituoções, observações"
                   {...register("note")}
                   className="w-full"
